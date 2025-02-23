@@ -3,13 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Registration from './pages/Registration';
 import Dashboard from './pages/Dashboard';
 import Suggestion from './pages/Suggestion';
 import Information from './pages/Information';
 import AdminDashboard from './pages/AdminDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Main App component: wraps the app with ErrorBoundary for robust error handling.
 function App() {
   return (
     <ErrorBoundary>
@@ -18,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registration />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/suggestion" element={<Suggestion />} />
           <Route path="/info" element={<Information />} />

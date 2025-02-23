@@ -6,7 +6,6 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { useTranslation } from 'react-i18next';
 
-// Navigation bar component with links to all key pages
 const Navbar = () => {
   const { t } = useTranslation();
   return (
@@ -17,6 +16,7 @@ const Navbar = () => {
         </Typography>
         <Button color="inherit" component={Link} to="/">{t('home')}</Button>
         <Button color="inherit" component={Link} to="/login">{t('login')}</Button>
+        <Button color="inherit" component={Link} to="/register">Registrer deg</Button>
         <Button color="inherit" component={Link} to="/dashboard">{t('dashboard')}</Button>
         <Button color="inherit" component={Link} to="/suggestion">{t('suggestion')}</Button>
         <Button color="inherit" component={Link} to="/info">{t('information')}</Button>
