@@ -1,87 +1,110 @@
 #!/bin/bash
-# This script updates the project with Firebase Authentication integration for registration.
-# It writes the new Registration.js file, updates App.js and Navbar.js,
-# commits all changes, and pushes the updated code to GitHub at https://github.com/DD3n/myapp.
-# Ensure your Git credentials are already set up.
+# This script integrates the voting process into the project.
+# It creates a new Vote.js page, updates App.js to include the new route,
+# and modifies TrendingVotesCard.js to link to the Vote page.
+# Finally, it commits and pushes the changes to GitHub.
+# Ensure your Git credentials are already configured.
 
 set -e
 
-echo "Writing src/pages/Registration.js..."
-cat << 'EOF' > src/pages/Registration.js
-import React, { useState } from 'react';
-import { Container, Typography, TextField, Button } from '@mui/material';
-import { useTranslation } from 'react-i18next';
-import { auth } from '../firebase';
-import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
+echo "Writing src/pages/Vote.js..."
+cat << 'EOF' > src/pages/Vote.js
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, TextField, Button, Box } from '@mui/material';
+import VotingChart from '../components/VotingChart';
+import { useParams } from 'react-router-dom';
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 
-const Registration = () => {
-  const { t } = useTranslation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+const Vote = () => {
+  const { id } = useParams(); // The proposal id from the route
+  const [proposal, setProposal] = useState(null);
+  const [votePoints, setVotePoints] = useState(0);
+  const [remainingVotes, setRemainingVotes] = useState(1000);
+  const [error, setError] = useState('');
 
-  const handleRegistration = async (e) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
+  useEffect(() => {
+    // Fetch proposal data from Firestore
+    const fetchProposal = async () => {
+      try {
+        const docRef = doc(db, "proposals", id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setProposal(docSnap.data());
+        } else {
+          setError("Proposal not found.");
+        }
+      } catch (err) {
+        setError("Error fetching proposal: " + err.message);
+      }
+    };
+    fetchProposal();
+  }, [id]);
+
+  const handleVote = async (voteType) => {
+    if (votePoints <= 0) {
+      setError("Please enter a valid number of vote points.");
+      return;
+    }
+    if (votePoints > remainingVotes) {
+      setError("Not enough vote points available.");
+      return;
+    }
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, { displayName });
-      await sendEmailVerification(userCredential.user);
-      setMessage("Registration successful. Please verify your email.");
+      const docRef = doc(db, "proposals", id);
+      await updateDoc(docRef, {
+        // Use Firestore's atomic increment to update vote counts
+        [\`votes.\${voteType}\`]: increment(votePoints)
+      });
+      // Deduct vote points locally (in a real app, you'd update the user's balance in Firestore)
+      setRemainingVotes(remainingVotes - votePoints);
+      setVotePoints(0);
+      setError("");
+      // Optionally, refresh proposal data or show a success message.
     } catch (err) {
-      setError(err.message);
+      setError("Error casting vote: " + err.message);
     }
   };
 
+  if (error) return <Typography color="error" sx={{ marginTop: 2 }}>{error}</Typography>;
+  if (!proposal) return <Typography sx={{ marginTop: 2 }}>Loading proposal...</Typography>;
+
   return (
-    <Container maxWidth="sm" sx={{ marginTop: 4 }}>
-      <Typography variant="h4" gutterBottom>Registrer deg</Typography>
-      <form onSubmit={handleRegistration}>
+    <Container sx={{ marginTop: 4 }}>
+      <Typography variant="h4">{proposal.title}</Typography>
+      <Box sx={{ marginTop: 2 }}>
+        <VotingChart data={proposal.votes} />
+      </Box>
+      <Box sx={{ marginTop: 2 }}>
         <TextField
-          label="Navn"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          required
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
+          label="Tildel stemmepoeng"
+          type="number"
+          value={votePoints}
+          onChange={(e) => setVotePoints(parseInt(e.target.value) || 0)}
         />
-        <TextField
-          label="E-post"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField
-          label="Passord"
-          variant="outlined"
-          type="password"
-          fullWidth
-          margin="normal"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        {error && <Typography color="error" variant="body2">{error}</Typography>}
-        {message && <Typography color="primary" variant="body2">{message}</Typography>}
-        <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }}>
-          Registrer
+        <Typography variant="body2" sx={{ marginTop: 1 }}>
+          Gjenstående stemmepoeng: {remainingVotes}
+        </Typography>
+      </Box>
+      <Box sx={{ marginTop: 2 }}>
+        <Button variant="contained" color="primary" onClick={() => handleVote('yes')} sx={{ marginRight: 1 }}>
+          Stem Ja
         </Button>
-      </form>
+        <Button variant="contained" color="secondary" onClick={() => handleVote('no')} sx={{ marginRight: 1 }}>
+          Stem Nei
+        </Button>
+        <Button variant="contained" onClick={() => handleVote('blank')}>
+          Stem Blank
+        </Button>
+      </Box>
     </Container>
   );
 };
 
-export default Registration;
+export default Vote;
 EOF
 
-echo "Updating src/App.js to include Registration route..."
+echo "Updating src/App.js to include the Vote route..."
 cat << 'EOF' > src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -93,6 +116,7 @@ import Dashboard from './pages/Dashboard';
 import Suggestion from './pages/Suggestion';
 import Information from './pages/Information';
 import AdminDashboard from './pages/AdminDashboard';
+import Vote from './pages/Vote';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -108,6 +132,7 @@ function App() {
           <Route path="/suggestion" element={<Suggestion />} />
           <Route path="/info" element={<Information />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/vote/:id" element={<Vote />} />
         </Routes>
       </Router>
     </ErrorBoundary>
@@ -117,37 +142,64 @@ function App() {
 export default App;
 EOF
 
-echo "Updating src/components/Navbar.js to include Registration link..."
-cat << 'EOF' > src/components/Navbar.js
+echo "Updating src/components/TrendingVotesCard.js to link to Vote page..."
+cat << 'EOF' > src/components/TrendingVotesCard.js
 import React from 'react';
-import { Link } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
+import { Card, CardContent, Typography, Button, CardActions } from '@mui/material';
+import VotingChart from './VotingChart';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
-const Navbar = () => {
+// Dummy data for trending proposals (ensure each proposal has a unique id matching Firestore documents)
+const proposals = [
+  {
+    id: "proposal1",
+    title: "Norge bør bli med i EU. Ja eller Nei?",
+    votes: { yes: 120, no: 80, blank: 10 },
+    userVote: null
+  },
+  {
+    id: "proposal2",
+    title: "Norge stanse innvandringen fra ikke-vestlige land. Ja eller Nei?",
+    votes: { yes: 95, no: 110, blank: 5 },
+    userVote: null
+  }
+];
+
+const TrendingVotesCard = () => {
   const { t } = useTranslation();
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {t('appTitle')}
+    <Card sx={{ marginBottom: 2 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          {t('trendingVotes')}
         </Typography>
-        <Button color="inherit" component={Link} to="/">{t('home')}</Button>
-        <Button color="inherit" component={Link} to="/login">{t('login')}</Button>
-        <Button color="inherit" component={Link} to="/register">Registrer deg</Button>
-        <Button color="inherit" component={Link} to="/dashboard">{t('dashboard')}</Button>
-        <Button color="inherit" component={Link} to="/suggestion">{t('suggestion')}</Button>
-        <Button color="inherit" component={Link} to="/info">{t('information')}</Button>
-        <Button color="inherit" component={Link} to="/admin">{t('admin')}</Button>
-      </Toolbar>
-    </AppBar>
+        {proposals.map((proposal) => (
+          <div key={proposal.id} style={{ marginBottom: '1rem' }}>
+            <Typography variant="subtitle1">{proposal.title}</Typography>
+            <VotingChart data={proposal.votes} />
+          </div>
+        ))}
+      </CardContent>
+      <CardActions>
+        {proposals.map((proposal) => (
+          <Button
+            key={proposal.id}
+            size="small"
+            variant="contained"
+            component={Link}
+            to={\`/vote/\${proposal.id}\`}
+            sx={{ marginRight: 1 }}
+          >
+            {t('voteNow')}
+          </Button>
+        ))}
+      </CardActions>
+    </Card>
   );
 };
 
-export default Navbar;
+export default TrendingVotesCard;
 EOF
 
 echo "Initializing git repository if needed..."
@@ -160,9 +212,9 @@ echo "Adding updated files to git..."
 git add .
 
 echo "Committing updated files..."
-git commit -m "Integrate Firebase Authentication: add Registration page and update routes/navbar"
+git commit -m "Integrate voting process: add Vote page and update routes and TrendingVotesCard"
 
 echo "Pushing changes to GitHub repository at https://github.com/DD3n/myapp..."
 git push -u origin main
 
-echo "User registration and login integration has been pushed successfully!"
+echo "Voting process integration has been pushed successfully!"

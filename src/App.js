@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Suggestion from './pages/Suggestion';
 import Information from './pages/Information';
 import AdminDashboard from './pages/AdminDashboard';
+import Vote from './pages/Vote';
 import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/suggestion" element={<Suggestion />} />
           <Route path="/info" element={<Information />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/vote/:id" element={<Vote />} />
         </Routes>
       </Router>
     </ErrorBoundary>

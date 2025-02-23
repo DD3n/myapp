@@ -2,24 +2,24 @@ import React from 'react';
 import { Card, CardContent, Typography, Button, CardActions } from '@mui/material';
 import VotingChart from './VotingChart';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
-// Dummy data for trending proposals
+// Dummy data for trending proposals (ensure each proposal has a unique id matching Firestore documents)
 const proposals = [
   {
-    id: 1,
+    id: "proposal1",
     title: "Norge bør bli med i EU. Ja eller Nei?",
     votes: { yes: 120, no: 80, blank: 10 },
     userVote: null
   },
   {
-    id: 2,
+    id: "proposal2",
     title: "Norge stanse innvandringen fra ikke-vestlige land. Ja eller Nei?",
     votes: { yes: 95, no: 110, blank: 5 },
     userVote: null
   }
 ];
 
-// Card component to display trending votes with a dynamic chart
 const TrendingVotesCard = () => {
   const { t } = useTranslation();
   return (
@@ -36,7 +36,18 @@ const TrendingVotesCard = () => {
         ))}
       </CardContent>
       <CardActions>
-        <Button size="small" variant="contained">{t('voteNow')}</Button>
+        {proposals.map((proposal) => (
+          <Button
+            key={proposal.id}
+            size="small"
+            variant="contained"
+            component={Link}
+            to={\`/vote/\${proposal.id}\`}
+            sx={{ marginRight: 1 }}
+          >
+            {t('voteNow')}
+          </Button>
+        ))}
       </CardActions>
     </Card>
   );
