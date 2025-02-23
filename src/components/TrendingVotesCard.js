@@ -31,7 +31,6 @@ const TrendingVotesCard = () => {
         {proposals.map((proposal) => (
           <div key={proposal.id} style={{ marginBottom: '1rem' }}>
             <Typography variant="subtitle1">{proposal.title}</Typography>
-            {/* VotingChart displays dynamic results (both weighted and unweighted can be implemented) */}
             <VotingChart data={proposal.votes} />
           </div>
         ))}

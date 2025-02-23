@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Container, Typography, TextField, Button, Paper } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-// Suggestion page: form for users to submit new voting proposals
 const Suggestion = () => {
   const { t } = useTranslation();
   const [suggestion, setSuggestion] = useState("");

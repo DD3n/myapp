@@ -3,13 +3,10 @@ import { Card, CardContent, TextField, Button, Typography, IconButton } from '@m
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 
-// Component for users to submit arguments (max 50 words, max 5 per proposal)
-// and vote (thumbs up/down) on each argument.
 const ProposalArguments = () => {
   const [argumentsList, setArgumentsList] = useState([]);
   const [inputValue, setInputValue] = useState("");
 
-  // Handle submission ensuring maximum 50 words and max 5 arguments
   const handleSubmit = (e) => {
     e.preventDefault();
     const wordCount = inputValue.trim().split(/\s+/).length;
@@ -26,7 +23,6 @@ const ProposalArguments = () => {
     setInputValue("");
   };
 
-  // Simple functions to update up/down counts
   const handleUpvote = (index) => {
     const newList = [...argumentsList];
     newList[index].up += 1;
@@ -53,9 +49,7 @@ const ProposalArguments = () => {
               <IconButton onClick={() => handleDownvote(index)} size="small">
                 <ThumbDownIcon fontSize="small" />
               </IconButton>
-              <Typography variant="caption">
-                Netto: {arg.up - arg.down}
-              </Typography>
+              <Typography variant="caption">Netto: {arg.up - arg.down}</Typography>
             </div>
           </div>
         ))}

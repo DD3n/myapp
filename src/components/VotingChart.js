@@ -10,10 +10,8 @@ import {
   Legend
 } from 'chart.js';
 
-// Register chart components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// VotingChart component renders a bar chart with vote counts
 const VotingChart = ({ data }) => {
   const chartData = {
     labels: ['Ja', 'Nei', 'Blank'],

@@ -2,7 +2,6 @@ import React from 'react';
 import { Container, Typography, Paper } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-// Information page explaining the principles of direct democracy
 const Information = () => {
   const { t } = useTranslation();
   return (

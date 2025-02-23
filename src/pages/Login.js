@@ -2,7 +2,6 @@ import React from 'react';
 import { Container, Typography, TextField, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
-// Simple login page; registration and authentication logic to be integrated with Firebase
 const Login = () => {
   const { t } = useTranslation();
 
@@ -17,21 +16,8 @@ const Login = () => {
         {t('loginTitle')}
       </Typography>
       <form onSubmit={handleLogin}>
-        <TextField
-          label={t('email')}
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          required
-        />
-        <TextField
-          label={t('password')}
-          variant="outlined"
-          type="password"
-          fullWidth
-          margin="normal"
-          required
-        />
+        <TextField label={t('email')} variant="outlined" fullWidth margin="normal" required />
+        <TextField label={t('password')} variant="outlined" type="password" fullWidth margin="normal" required />
         <Button type="submit" variant="contained" color="primary" fullWidth sx={{ marginTop: 2 }}>
           {t('submit')}
         </Button>

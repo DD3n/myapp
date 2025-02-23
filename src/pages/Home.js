@@ -4,7 +4,6 @@ import TrendingVotesCard from '../components/TrendingVotesCard';
 import TopicsOverviewCard from '../components/TopicsOverviewCard';
 import { useTranslation } from 'react-i18next';
 
-// Home page: displays the main overview with trending votes and topics cards
 const Home = () => {
   const { t } = useTranslation();
   return (
