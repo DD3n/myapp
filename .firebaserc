@@ -1,0 +1,5 @@
+{
+  "projects": {
+    "default": "d3-project-id"  // Replace with your actual Firebase project ID
+  }
+}
